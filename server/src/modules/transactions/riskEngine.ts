@@ -4,19 +4,40 @@ import { RISK_LEVELS, RiskLevel } from '../../utils/constants';
 import logger from '../../utils/logger';
 
 // ─── OFAC / UN Sanctioned Countries List ─────────────────────────────────
-// Based on real OFAC SDN list country codes
+// ─── RBI / FIU-IND High Risk Countries List ──────────────────────────────
+// Based on: FATF High-Risk Jurisdictions + RBI Caution List + UNSC Sanctions
+// RBI Master Direction on KYC 2016 (updated 2023) — Schedule III countries
+
 const SANCTIONED_COUNTRIES = new Set([
-  'IR', // Iran
+  // FATF Black List (High-Risk Jurisdictions subject to a Call for Action)
   'KP', // North Korea
+  'IR', // Iran
+  'MM', // Myanmar (added 2022)
+
+  // FATF Grey List (Jurisdictions under Increased Monitoring) — select high risk
+  'PK', // Pakistan — high relevance for India
+  'AF', // Afghanistan
   'SY', // Syria
-  'CU', // Cuba (partial)
-  'VE', // Venezuela (certain entities)
-  'MM', // Myanmar
-  'BY', // Belarus
-  'RU', // Russia (certain entities - post 2022)
+  'YE', // Yemen
+  'IQ', // Iraq
+  'LY', // Libya
   'SS', // South Sudan
   'SD', // Sudan
+
+  // UNSC Sanctions
+  'CU', // Cuba
+  'VE', // Venezuela
+
+  // RBI specific caution — post 2022 geopolitical
+  'RU', // Russia (certain transactions)
+  'BY', // Belarus
 ]);
+
+// ─── India Regulatory Thresholds ─────────────────────────────────────────
+const CTR_THRESHOLD = 1000000;    // ₹10 Lakh — mandatory CTR filing with FIU-IND
+const WIRE_THRESHOLD = 5000000;   // ₹50 Lakh — enhanced due diligence
+const ROUND_AMOUNT_MIN = 100000;  // ₹1 Lakh minimum for round amount flag
+const VELOCITY_LIMIT = 5;         // More than 5 transactions in 24 hours
 
 // ─── Risk Score → Risk Level Mapping ─────────────────────────────────────
 export const getRiskLevel = (score: number): RiskLevel => {

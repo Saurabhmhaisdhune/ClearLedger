@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler';
 import connectDB from './config/database';
 import authRoutes from './modules/auth/auth.routes';
 import logger from './utils/logger';
+import transactionRoutes from './modules/transactions/transaction.routes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -50,7 +51,13 @@ app.get('/health', (_req, res) => {
 });
 
 // ─── API Routes ───────────────────────────────────────────────────────────
+
+app.use('/api/v1/transactions', transactionRoutes);
 app.use('/api/v1/auth', authLimiter, authRoutes);
+app.use((req, _res, next) => {
+  console.log(req.method, req.originalUrl);
+  next();
+});
 // More routes will be added here as we build each module
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────

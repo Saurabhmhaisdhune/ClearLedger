@@ -41,7 +41,7 @@ const TransactionSchema = new Schema<ITransaction>(
       index: true,
     },
     amount: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: 'USD', uppercase: true },
+    currency: { type: String, default: 'INR', uppercase: true },
     senderId: { type: String, required: true },
     senderName: { type: String, required: true },
     senderBank: { type: String, required: true },
@@ -50,11 +50,11 @@ const TransactionSchema = new Schema<ITransaction>(
     receiverName: { type: String, required: true },
     receiverBank: { type: String, required: true },
     receiverCountry: { type: String, required: true, uppercase: true },
-    txnType: {
-      type: String,
-      enum: ['WIRE', 'ACH', 'SWIFT', 'INTERNAL', 'CASH'],
-      required: true,
-    },
+  txnType: {
+  type: String,
+  enum: ['RTGS', 'NEFT', 'IMPS', 'SWIFT', 'CASH'],
+  required: true,
+},
     channel: {
       type: String,
       enum: ['ONLINE', 'BRANCH', 'ATM', 'MOBILE'],

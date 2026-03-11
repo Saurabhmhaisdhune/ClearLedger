@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "tsc --noEmit",
+			"command": "npx",
+			"args": [
+				"tsc",
+				"--noEmit"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/server"
+			},
+			"problemMatcher": "$tsc",
+			"presentation": {
+				"reveal": "silent"
+			}
+		}
+	]
+}

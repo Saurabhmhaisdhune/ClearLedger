@@ -13,32 +13,37 @@ import { TRANSACTION_STATUS } from '../utils/constants';
 const TOTAL_TRANSACTIONS = 5000;
 const BATCH_SIZE = 100; // Insert in batches to avoid memory overload
 
-// ─── Realistic Data Pools ─────────────────────────────────────────────────
-
+// Primary countries — India-centric with neighbouring and trading partners
 const COUNTRIES = [
-  'US', 'GB', 'IN', 'SG', 'AE', 'DE', 'AU', 'CA', 'FR', 'JP',
-  'HK', 'CH', 'NL', 'SE', 'NO', 'BR', 'MX', 'ZA', 'KE', 'NG',
+  'IN', 'IN', 'IN', 'IN', 'IN', // India appears most (realistic for Indian bank)
+  'US', 'GB', 'SG', 'AE', 'DE',
+  'AU', 'CA', 'JP', 'HK', 'CH',
+  'FR', 'NL', 'KE', 'ZA', 'MX',
+  'BD', 'LK', 'NP', 'MV',        // South Asian neighbours
 ];
 
-// A few sanctioned countries mixed in to ensure CRITICAL/HIGH transactions
-const SANCTIONED_COUNTRIES = ['IR', 'KP', 'SY', 'MM', 'RU'];
+// FATF Grey/Black + RBI Caution list countries
+const SANCTIONED_COUNTRIES = ['PK', 'IR', 'KP', 'AF', 'SY', 'MM', 'RU'];
 
-// All countries pool (mostly normal, some sanctioned)
 const ALL_COUNTRIES = [
   ...COUNTRIES,
-  ...COUNTRIES, // Doubled so normal countries appear more frequently
-  ...SANCTIONED_COUNTRIES, // ~10% chance of sanctioned country
+  ...COUNTRIES,
+  ...SANCTIONED_COUNTRIES,  // ~10-12% chance
 ];
 
-const TXN_TYPES = ['WIRE', 'ACH', 'SWIFT', 'INTERNAL', 'CASH'] as const;
+const TXN_TYPES = ['RTGS', 'NEFT', 'IMPS', 'SWIFT', 'CASH'] as const;
 const CHANNELS = ['ONLINE', 'BRANCH', 'ATM', 'MOBILE'] as const;
 
+// Indian banks (realistic for an Indian AML platform)
 const BANKS = [
-  'JPMorgan Chase Bank', 'Bank of America', 'Wells Fargo Bank',
-  'Citibank NA', 'HSBC Bank', 'Barclays Bank', 'Deutsche Bank',
-  'BNP Paribas', 'Standard Chartered', 'DBS Bank',
-  'ICICI Bank', 'HDFC Bank', 'Axis Bank', 'SBI',
-  'Commonwealth Bank', 'ANZ Bank', 'Westpac Banking',
+  'State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank',
+  'Kotak Mahindra Bank', 'Punjab National Bank', 'Bank of Baroda',
+  'Canara Bank', 'Union Bank of India', 'IndusInd Bank',
+  'Yes Bank', 'IDFC First Bank', 'Federal Bank', 'South Indian Bank',
+  'RBL Bank', 'DCB Bank', 'Bandhan Bank', 'AU Small Finance Bank',
+  // Foreign banks operating in India
+  'Citibank India', 'HSBC India', 'Standard Chartered India',
+  'Deutsche Bank India', 'DBS Bank India', 'Barclays India',
 ];
 
 // ─── Generate a Single Fake Transaction ──────────────────────────────────
@@ -48,33 +53,31 @@ function generateRawTransaction(index: number) {
   const receiverCountry = faker.helpers.arrayElement(ALL_COUNTRIES);
   const txnType = faker.helpers.arrayElement(TXN_TYPES);
 
-  // Create varied amount distribution:
-  // ~40% small (under $5k), ~35% medium ($5k-$50k), ~25% large (over $50k)
+// India-specific amount distribution in INR
+  // ~40% small (under ₹50k), ~35% medium (₹50k-₹10L), ~25% large (above ₹10L)
   let amount: number;
   const amountRange = faker.number.int({ min: 1, max: 100 });
 
   if (amountRange <= 40) {
-    // Small transactions
-    amount = faker.number.float({ min: 50, max: 4999, fractionDigits: 2 });
+    amount = faker.number.float({ min: 500, max: 49999, fractionDigits: 2 });
   } else if (amountRange <= 75) {
-    // Medium transactions
-    amount = faker.number.float({ min: 5000, max: 49999, fractionDigits: 2 });
+    amount = faker.number.float({ min: 50000, max: 999999, fractionDigits: 2 });
   } else {
-    // Large transactions
-    amount = faker.number.float({ min: 50000, max: 500000, fractionDigits: 2 });
+    amount = faker.number.float({ min: 1000000, max: 50000000, fractionDigits: 2 });
   }
 
-  // ~5% of transactions: make amount suspiciously round (structuring signal)
+  // ~5% round amounts (structuring signal) — INR round amounts
   if (faker.number.int({ min: 1, max: 20 }) === 1) {
     amount = faker.helpers.arrayElement([
-      5000, 7000, 8000, 9000, 9500, 10000, 15000,
-      20000, 25000, 50000, 75000, 100000,
+      100000, 200000, 500000, 750000, 800000,
+      900000, 950000, 1000000, 2000000, 5000000,
+      10000000, 25000000,
     ]);
   }
 
-  // ~3% of transactions: amount just below threshold (structuring signal)
+  // ~3% just below ₹10 Lakh CTR threshold (structuring signal)
   if (faker.number.int({ min: 1, max: 33 }) === 1) {
-    amount = faker.number.float({ min: 8000, max: 9999.99, fractionDigits: 2 });
+    amount = faker.number.float({ min: 800000, max: 999999, fractionDigits: 2 });
   }
 
   const senderId = `ACC-${faker.string.numeric(10)}`;
@@ -89,7 +92,7 @@ function generateRawTransaction(index: number) {
   return {
     txnId: `TXN-${String(index).padStart(6, '0')}-${faker.string.alphanumeric(6).toUpperCase()}`,
     amount: Math.round(amount * 100) / 100,
-    currency: 'USD',
+    currency: 'INR',
     senderId,
     senderName: faker.person.fullName(),
     senderBank: faker.helpers.arrayElement(BANKS),

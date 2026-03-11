@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
- "scripts": {
-  "dev": "nodemon --watch src --ext ts --exec \"ts-node --files src/app.ts\"",
-  "seed": "ts-node --files src/scripts/seed.ts",
-  "build": "rimraf dist && tsc",
-  "start": "node dist/app.js"
-},
+  "scripts": {
+    "dev": "nodemon --watch src --ext ts --exec \"ts-node --files src/app.ts\"",
+    "seed": "ts-node --files src/scripts/seed.ts",
+    "build": "rimraf dist && tsc",
+    "start": "node dist/app.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -37,6 +37,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.5",
     "@types/nodemailer": "^7.0.11",
